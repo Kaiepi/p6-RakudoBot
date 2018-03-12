@@ -1,0 +1,105 @@
+use v6.c;
+use IRC::Client;
+use RakudoBot::Config;
+unit module RakudoBot:ver<0.0.1>:auth<github:Kaiepi>;
+
+.run with IRC::Client.new:
+    :host(RB_HOST),
+    :nick(RB_NICKNAME),
+    :password(RB_PASSWORD),
+    :username(RB_USERNAME),
+    :channels(RB_CHANNEL),
+
+=begin pod
+
+=head1 NAME
+
+RakudoBot - IRC bot for testing Rakudo builds
+
+=head1 DESCRIPTION
+
+RakudoBot is an IRC bot for testing builds of Rakudo. To install, run:
+
+    $ git clone https://github.com/Kaiepi/p6-RakudoBot.git
+    $ cd p6-RakudoBot
+    $ zef install .
+
+Afterwards, edit C<config.json> to suit your needs. To start the bot, run:
+
+    $ screen -L -S rakudo-bot rakudo-bot
+
+=head1 COMMANDS
+
+Commands may be used by addressing the bot.
+
+=item B<build>
+
+Runs C<Configure.pl> and C<make>, outputting any errors.
+
+=item B<test>
+
+Runs C<make test>, outputting any errors.
+
+=item B<spectest>
+
+Runs C<make spectest>, outputting any errors.
+
+=item B<all>
+
+Runs C<Configure.pl>, C<make>, C<make test>, and C<make spectest>, outputting
+any errors.
+
+=item B<help>
+
+Displays help for the bot's commands.
+
+=head1 CONFIG
+
+=item B<host>
+
+The host the bot will connect to.
+
+=item B<nickname>
+
+The bot's nickname.
+
+=item B<password>
+
+The bot's password, if any.
+
+=item B<username>
+
+The bot's username.
+
+=item B<channel>
+
+The channel the bot will be active in.
+
+=item B<maintainer>
+
+The nickname of the maintainer of the bot (you) in case users need to contact
+them.
+
+=item B<rakudo_path>
+
+The path to the directory containing Rakudo's source code. If it doesn't exist,
+clone <https://github.com/perl6/rakudo.git> and change this to its path.
+
+=item B<config_flags>
+
+Flags to pass to C<Configure.pl> when building Rakudo. For more information, run
+this from the directory containing Rakudo's source code:
+
+    $ ./Configure.pl --help
+
+=head1 AUTHOR
+
+Ben Davies <kaiepi@outlook.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2017 Ben Davies
+
+This library is free software; you can redistribute it and/or modify it under the Artistic License 2.0.
+
+=end pod 

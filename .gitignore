@@ -1,0 +1,5 @@
+*.core
+*.swp
+*.swo
+.precomp/
+config.json

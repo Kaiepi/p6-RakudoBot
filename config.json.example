@@ -1,0 +1,15 @@
+{
+	"host": "irc.freenode.net",
+	"nickname": "RakudoBot",
+	"password": "",
+	"username": "RakudoBot",
+	"channel": "#channel_name",
+
+	"maintainer": "Kaiepi",
+	"rakudo_path": "~/Documents/perl6/rakudo",
+	"config_flags": [
+		"--gen-moar",
+		"--moar-option='--has-dyncall'",
+        "--backends=moar"
+	]
+}

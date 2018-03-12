@@ -1,0 +1,23 @@
+{
+  "authors" : [ "Ben Davies" ],
+  "build-depends" : [ ],
+  "depends" : [
+	"IRC::Client",
+	"JSON::Fast",
+    "Pastebin::Shadowcat"
+  ],
+  "description" : "IRC bot for testing Rakudo builds",
+  "license" : "Artistic-2.0",
+  "name" : "RakudoBot",
+  "perl" : "6.c",
+  "provides" : {
+    "RakudoBot" : "lib/RakudoBot.pm6",
+    "RakudoBot::Config" : "lib/RakudoBot/Config.pm6",
+	"IRC::Client::Plugin::Rakudo" : "lib/IRC/Client/Plugin/Rakudo.pm6"
+  },
+  "resources" : [ ],
+  "source-url" : "https://github.com/Kaiepi/p6-RakudoBot.git",
+  "tags" : [ "Net", "IRC" ],
+  "test-depends" : [ ],
+  "version" : "0.0.1"
+}
