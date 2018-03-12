@@ -52,7 +52,6 @@ method configure(--> Bool) {
 
     CATCH {
         default {
-            say @lines;
             $.log-output('Configuring failed.', @lines);
             return True;
         }
