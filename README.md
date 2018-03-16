@@ -79,6 +79,10 @@ Flags to pass to `Configure.pl` when building Rakudo. For more information, run 
 
     $ ./Configure.pl --help
 
+  * **debug**
+
+Enable/disable debug logging.
+
 AUTHOR
 ======
 

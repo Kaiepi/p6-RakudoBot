@@ -10,6 +10,7 @@ unit module RakudoBot:ver<0.0.1>:auth<github:Kaiepi>;
     :password(RB_PASSWORD),
     :username(RB_USERNAME),
     :channels(RB_CHANNEL),
+    :debug(RB_DEBUG),
     :plugins(IRC::Client::Plugin::Rakudo.new);
 
 =begin pod
@@ -94,6 +95,10 @@ Flags to pass to C<Configure.pl> when building Rakudo. For more information, run
 this from the directory containing Rakudo's source code:
 
     $ ./Configure.pl --help
+
+=item B<debug>
+
+Enable/disable debug logging.
 
 =head1 AUTHOR
 

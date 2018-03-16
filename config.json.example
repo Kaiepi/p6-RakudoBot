@@ -10,6 +10,8 @@
 	"config_flags": [
 		"--gen-moar",
 		"--moar-option='--has-dyncall'",
-        "--backends=moar"
-	]
+		"--backends=moar"
+	],
+
+	"debug": false
 }
