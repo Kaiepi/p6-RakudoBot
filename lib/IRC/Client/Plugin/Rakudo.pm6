@@ -21,7 +21,7 @@ method diff(--> Bool) {
     $.log-progress("The current branch has uncommitted changes. Please tell {RB_MAINTAINER} to commit or reset any changes made before running your command again.") if $diff;
     so $diff;
 }
-    
+
 method setup(--> Str) {
     chdir RB_RAKUDO_PATH;
     my $output := qx/git branch/;
@@ -184,6 +184,10 @@ multi method irc-addressed($ where /<|w>spectest<|w>/) {
 
         'done!';
     }
+}
+
+multi method irc-addressed($ where /<|w>(github|git|source)<|w>/) {
+    RB_SOURCE
 }
 
 multi method irc-addressed($ where /<|w>help<|w>/) {

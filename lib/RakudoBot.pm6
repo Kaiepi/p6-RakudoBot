@@ -53,6 +53,12 @@ Runs C<make spectest>, outputting any errors.
 Runs C<Configure.pl>, C<make>, C<make test>, and C<make spectest>, outputting
 any errors.
 
+=item B<github>
+=item B<git>
+=item B<source>
+
+Link to the source repo for the bot.
+
 =item B<help>
 
 Displays help for the bot's commands.
@@ -84,6 +90,10 @@ The channel the bot will be active in.
 The nickname of the maintainer of the bot (you) in case users need to contact
 them.
 
+=item B<source>
+
+Link to the source repo of the bot.
+
 =item B<rakudo_path>
 
 The path to the directory containing Rakudo's source code. If it doesn't exist,
@@ -110,4 +120,4 @@ Copyright 2017 Ben Davies
 
 This library is free software; you can redistribute it and/or modify it under the Artistic License 2.0.
 
-=end pod 
+=end pod

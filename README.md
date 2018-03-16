@@ -38,6 +38,14 @@ Runs `make spectest`, outputting any errors.
 
 Runs `Configure.pl`, `make`, `make test`, and `make spectest`, outputting any errors.
 
+  * **github**
+
+  * **git**
+
+  * **source**
+
+Link to the source repo for the bot.
+
   * **help**
 
 Displays help for the bot's commands.
@@ -68,6 +76,10 @@ The channel the bot will be active in.
   * **maintainer**
 
 The nickname of the maintainer of the bot (you) in case users need to contact them.
+
+  * **source**
+
+Link to the source repo of the bot.
 
   * **rakudo_path**
 
