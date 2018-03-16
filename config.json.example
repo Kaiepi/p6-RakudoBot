@@ -6,12 +6,10 @@
 	"channel": "#channel_name",
 
 	"maintainer": "Kaiepi",
-	"source": "https://github.com/Kaiepi/p6-RakudoBot.git",
-	"rakudo_path": "~/Documents/perl6/rakudo",
+	"source": "https://github.com/Kaiepi/p6-RakudoBot",
+	"rakudo_path": "/home/kaiepi/Documents/perl6/rakudo",
 	"config_flags": [
-		"--gen-moar",
-		"--moar-option='--has-dyncall'",
-		"--backends=moar"
+		"--gen-moar"
 	],
 
 	"debug": false
