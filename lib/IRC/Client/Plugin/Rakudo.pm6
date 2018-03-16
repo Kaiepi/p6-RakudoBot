@@ -2,13 +2,13 @@ use v6.c;
 use IRC::Client;
 use Pastebin::Shadowcat;
 use RakudoBot::Config;
-unit class IRC::Client::Plugin::Rakudo;
+unit class IRC::Client::Plugin::Rakudo does IRC::Client::Plugin;
 
 has Lock                $!mux      .= new;
 has Pastebin::Shadowcat $!pastebin .= new;
 
 method log-progress(Str $text) {
-    $.irc.send: :where(RB_CHANNEL), :text('[' ~ $*VM.osname ~ '] ' ~ $text);
+    $.irc.send: :where(RB_CHANNEL), :text("[{$*VM.osname}] $text");
 }
 
 method log-output(Str $message, @lines) {;
@@ -18,7 +18,7 @@ method log-output(Str $message, @lines) {;
 
 method diff(--> Bool) {
     my $diff := qx/git diff -q/;
-    $.log-progress('The current branch has uncommitted changes. Please tell ' ~ RB_MAINTAINER ~ ' to commit or reset any changes made before running your command again.') if $diff;
+    $.log-progress("The current branch has uncommitted changes. Please tell {RB_MAINTAINER} to commit or reset any changes made before running your command again.") if $diff;
     so $diff;
 }
     
@@ -128,7 +128,7 @@ method spectest(--> Bool) {
 
 multi method irc-addressed($ where /<|w>all<|w>/) {
     start {
-        $!mux.protect({
+        $!mux.protect(sub {
             return if $.diff;
 
             my $branch := $.setup;
@@ -138,13 +138,14 @@ multi method irc-addressed($ where /<|w>all<|w>/) {
             $error = $.spectest unless $error;
             $.teardown($branch);
         });
+
+        'done!';
     }
-    return;
 }
 
 multi method irc-addressed($ where /<|w>build<|w>/) {
     start {
-        $!mux.protect({
+        $!mux.protect(sub {
             return if $.diff;
 
             my $branch := $.setup;
@@ -152,34 +153,37 @@ multi method irc-addressed($ where /<|w>build<|w>/) {
             $.build             unless $error;
             $.teardown($branch);
         });
+
+        'done!';
     }
-    return;
 }
 
 multi method irc-addressed($ where /<|w>test<|w>/) {
     start {
-        $!mux.protect({
+        $!mux.protect(sub {
             return if $.diff;
 
             my $branch := $.setup;
             $.test;
             $.teardown($branch);
         });
+
+        'done!';
     }
-    return;
 }
 
 multi method irc-addressed($ where /<|w>spectest<|w>/) {
     start {
-        $!mux.protect({
+        $!mux.protect(sub {
             return if $.diff;
 
             my $branch := $.setup;
             $.spectest;
             $.teardown($branch);
         });
+
+        'done!';
     }
-    return;
 }
 
 multi method irc-addressed($ where /<|w>help<|w>/) {
