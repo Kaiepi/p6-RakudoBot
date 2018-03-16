@@ -1,5 +1,6 @@
 use v6.c;
 use IRC::Client;
+use IRC::Client::Plugin::Rakudo;
 use RakudoBot::Config;
 unit module RakudoBot:ver<0.0.1>:auth<github:Kaiepi>;
 
@@ -9,6 +10,7 @@ unit module RakudoBot:ver<0.0.1>:auth<github:Kaiepi>;
     :password(RB_PASSWORD),
     :username(RB_USERNAME),
     :channels(RB_CHANNEL),
+    :plugins(IRC::Client::Plugin::Rakudo.new);
 
 =begin pod
 
