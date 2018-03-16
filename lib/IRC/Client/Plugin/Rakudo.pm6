@@ -23,8 +23,10 @@ method log-output(Str $message, @lines) {
 }
 
 method diff(--> Bool) {
+    chdir RB_RAKUDO_PATH;
     my $diff := qx/git diff -q/;
     $.log-progress("The current branch has uncommitted changes. Please tell {RB_MAINTAINER} to commit or reset any changes made before running your command again.") if $diff;
+    chdir RB_PWD;
     so $diff;
 }
 
@@ -156,7 +158,7 @@ multi method irc-addressed($ where /<|w>build<|w>/) {
 
             my $branch := $.setup;
             my $error   = $.configure;
-            $.build             unless $error;
+            $.build unless $error;
             $.teardown($branch);
         });
 
