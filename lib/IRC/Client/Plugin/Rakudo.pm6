@@ -11,9 +11,15 @@ method log-progress(Str $text) {
     $.irc.send: :where(RB_CHANNEL), :text("[{$*VM.osname}] $text");
 }
 
-method log-output(Str $message, @lines) {;
+method log-output(Str $message, @lines) {
     my $url := $!pastebin.paste(@lines.join(''));
     $.log-progress("$message See the output at $url");
+
+    CATCH {
+        default {
+            $.log-progress("$message Failed to upload output to Pastebin.");
+        }
+    }
 }
 
 method diff(--> Bool) {
