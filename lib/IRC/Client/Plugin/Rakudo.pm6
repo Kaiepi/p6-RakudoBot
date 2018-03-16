@@ -52,7 +52,7 @@ method configure(--> Bool) {
     $.log-progress('Configuring Rakudo...');
 
     my @lines;
-    my $proc = Proc::Async.new: './Configure.pl', RB_CONFIG_FLAGS;
+    my $proc = Proc::Async.new: './Configure.pl', |RB_CONFIG_FLAGS;
     $proc.stdout.tap({ @lines.push($_) });
     $proc.stderr.tap({ @lines.push($_) });
     await $proc.start;
