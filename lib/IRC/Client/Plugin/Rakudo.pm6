@@ -1,14 +1,20 @@
 use v6.c;
 use IRC::Client;
 use Pastebin::Shadowcat;
-use RakudoBot::Config;
 unit class IRC::Client::Plugin::Rakudo does IRC::Client::Plugin;
 
 has Lock                $!mux      .= new;
 has Pastebin::Shadowcat $!pastebin .= new;
 
+has Str      $.channel;
+has Str      $.maintainer;
+has Str      $.source;
+has IO::Path $.rakudo-path;
+has          @.config-flags;
+has IO::Path $.cwd = $*CWD;
+
 method log-progress(Str $text) {
-    $.irc.send: :where(RB_CHANNEL), :text("[{$*VM.osname}] $text");
+    $.irc.send: :where($!maintainer), :text("[{$*VM.osname}] $text");
 }
 
 method log-output(Str $message, @lines) {
@@ -23,15 +29,12 @@ method log-output(Str $message, @lines) {
 }
 
 method diff(--> Bool) {
-    chdir RB_RAKUDO_PATH;
     my $diff := qx/git diff -q/;
-    $.log-progress("The current branch has uncommitted changes. Please tell {RB_MAINTAINER} to commit or reset any changes made before running your command again.") if $diff;
-    chdir RB_PWD;
+    $.log-progress("The current branch has uncommitted changes. Please tell {$!maintainer} to commit or reset any changes made before running your command again.") if $diff;
     so $diff;
 }
 
 method setup(--> Str) {
-    chdir RB_RAKUDO_PATH;
     my $output := qx/git branch/;
     $output ~~ / \*\s(\N+) /;
 
@@ -44,15 +47,14 @@ method setup(--> Str) {
 }
 
 method teardown(Str $branch) {
-    (run 'git', 'checkout', $branch) unless $branch eq 'master';
-    chdir RB_PWD;
+    run('git', 'checkout', $branch) unless $branch eq 'master';
 }
 
 method configure(--> Bool) {
     $.log-progress('Configuring Rakudo...');
 
     my @lines;
-    my $proc = Proc::Async.new: './Configure.pl', |RB_CONFIG_FLAGS;
+    my $proc = Proc::Async.new: './Configure.pl', |@!config-flags;
     $proc.stdout.tap({ @lines.push($_) });
     $proc.stderr.tap({ @lines.push($_) });
     await $proc.start;
@@ -137,7 +139,8 @@ method spectest(--> Bool) {
 multi method irc-addressed($ where /<|w>all<|w>/) {
     start {
         $!mux.protect(sub {
-            return if $.diff;
+            chdir $!rakudo-path;
+            return chdir $!cwd if $.diff;
 
             my $branch := $.setup;
             my $error   = $.configure;
@@ -145,6 +148,7 @@ multi method irc-addressed($ where /<|w>all<|w>/) {
             $error = $.test     unless $error;
             $error = $.spectest unless $error;
             $.teardown($branch);
+            chdir $!cwd;
         });
 
         'done!';
@@ -154,12 +158,14 @@ multi method irc-addressed($ where /<|w>all<|w>/) {
 multi method irc-addressed($ where /<|w>build<|w>/) {
     start {
         $!mux.protect(sub {
-            return if $.diff;
+            chdir $!rakudo-path;
+            return chdir $!cwd if $.diff;
 
             my $branch := $.setup;
             my $error   = $.configure;
             $.build unless $error;
             $.teardown($branch);
+            chdir $!cwd;
         });
 
         'done!';
@@ -169,11 +175,13 @@ multi method irc-addressed($ where /<|w>build<|w>/) {
 multi method irc-addressed($ where /<|w>test<|w>/) {
     start {
         $!mux.protect(sub {
-            return if $.diff;
+            chdir $!rakudo-path;
+            return chdir $!cwd if $.diff;
 
             my $branch := $.setup;
             $.test;
             $.teardown($branch);
+            chdir $!cwd;
         });
 
         'done!';
@@ -183,11 +191,13 @@ multi method irc-addressed($ where /<|w>test<|w>/) {
 multi method irc-addressed($ where /<|w>spectest<|w>/) {
     start {
         $!mux.protect(sub {
-            return if $.diff;
+            chdir $!rakudo-path;
+            return chdir $!cwd if $.diff;
 
             my $branch := $.setup;
             $.spectest;
             $.teardown($branch);
+            chdir $!cwd;
         });
 
         'done!';
@@ -195,9 +205,9 @@ multi method irc-addressed($ where /<|w>spectest<|w>/) {
 }
 
 multi method irc-addressed($ where /<|w>(github|git|source)<|w>/) {
-    RB_SOURCE
+    $!source
 }
 
 multi method irc-addressed($ where /<|w>help<|w>/) {
-    'address me with "build", "test", or "spectest" to test building Rakudo, running tests, and running Roast\'s suite respectively on ' ~ $*VM.osname ~ '. Address me with "all" to attempt to run all three sequentially.'
+    "address me with 'build', 'test', or 'spectest' to test building Rakudo, running tests, and running Roast\'s suite respectively on {$*VM.osname}. Address me with 'all' to attempt to run all three sequentially."
 }

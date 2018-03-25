@@ -4,6 +4,13 @@ use IRC::Client::Plugin::Rakudo;
 use RakudoBot::Config;
 unit module RakudoBot:ver<0.0.1>:auth<github:Kaiepi>;
 
+my IRC::Client::Plugin::Rakudo $rakudo-plugin .= new:
+    :channel(RB_CHANNEL),
+    :maintainer(RB_MAINTAINER),
+    :source(RB_SOURCE),
+    :rakudo-path(RB_RAKUDO_PATH.IO),
+    :config-flags(RB_CONFIG_FLAGS);
+
 .run with IRC::Client.new:
     :host(RB_HOST),
     :nick(RB_NICKNAME),
@@ -11,7 +18,7 @@ unit module RakudoBot:ver<0.0.1>:auth<github:Kaiepi>;
     :username(RB_USERNAME),
     :channels(RB_CHANNEL),
     :debug(RB_DEBUG),
-    :plugins(IRC::Client::Plugin::Rakudo.new);
+    :plugins($rakudo-plugin);
 
 =begin pod
 
