@@ -66,8 +66,8 @@ method setup(--> Str) {
 
     my $branch := ~$0;
     unless $branch eq 'master' {
-        run 'git', 'fetch', 'origin', 'master';
         run 'git', 'checkout', 'master';
+        run 'git', 'pull', '--rebase', 'origin', 'master';
     }
     $branch;
 }
