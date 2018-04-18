@@ -9,9 +9,31 @@ has Pastebin::Shadowcat $!pastebin .= new;
 has Str      $.channel;
 has Str      $.maintainer;
 has Str      $.source;
-has IO::Path $.rakudo-path;
+has IO::Path $.path;
 has          @.config-flags;
-has IO::Path $.cwd = $*CWD;
+has IO::Path $.cwd;
+
+method new(
+    Str :$channel,
+    Str :$maintainer,
+    Str :$source,
+    Str :$rakudo-path,
+    :@config-flags
+) {
+    my $replacer := $*DISTRO.is-win
+        ?? / \%USERPROFILE\% | \%HOMEDRIVE\% \%HOMEPATH\% /
+        !! / \~ /;
+    my IO::Path $path .= new: $rakudo-path.subst($replacer, $*HOME, :g:i).IO.resolve;
+    fail "Configured Rakudo path '$path' is not a directory!" unless $path.d;
+
+    self.bless:
+        :$channel,
+        :$maintainer,
+        :$source,
+        :$path,
+        :@config-flags,
+        :cwd($*CWD);
+}
 
 method log-progress(Str $text) {
     $.irc.send: :where($!maintainer), :text("[{$*VM.osname}] $text");
@@ -139,7 +161,7 @@ method spectest(--> Bool) {
 multi method irc-addressed($ where /<|w>all<|w>/) {
     start {
         $!mux.protect(sub {
-            chdir $!rakudo-path;
+            chdir $!path;
             return chdir $!cwd if $.diff;
 
             my $branch := $.setup;
@@ -158,7 +180,7 @@ multi method irc-addressed($ where /<|w>all<|w>/) {
 multi method irc-addressed($ where /<|w>build<|w>/) {
     start {
         $!mux.protect(sub {
-            chdir $!rakudo-path;
+            chdir $!path;
             return chdir $!cwd if $.diff;
 
             my $branch := $.setup;
@@ -175,7 +197,7 @@ multi method irc-addressed($ where /<|w>build<|w>/) {
 multi method irc-addressed($ where /<|w>test<|w>/) {
     start {
         $!mux.protect(sub {
-            chdir $!rakudo-path;
+            chdir $!path;
             return chdir $!cwd if $.diff;
 
             my $branch := $.setup;
@@ -191,7 +213,7 @@ multi method irc-addressed($ where /<|w>test<|w>/) {
 multi method irc-addressed($ where /<|w>spectest<|w>/) {
     start {
         $!mux.protect(sub {
-            chdir $!rakudo-path;
+            chdir $!path;
             return chdir $!cwd if $.diff;
 
             my $branch := $.setup;

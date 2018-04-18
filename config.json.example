@@ -7,7 +7,7 @@
 
 	"maintainer": "Kaiepi",
 	"source": "https://github.com/Kaiepi/p6-RakudoBot",
-	"rakudo_path": "/home/kaiepi/Documents/perl6/rakudo",
+	"rakudo_path": "~/Documents/perl6/rakudo",
 	"config_flags": [
 		"--gen-moar"
 	],
