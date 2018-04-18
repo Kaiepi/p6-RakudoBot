@@ -40,6 +40,9 @@ Afterwards, edit C<config.json> to suit your needs. To start the bot, run:
 
     $ screen -L -S rakudo-bot rakudo-bot
 
+Note: you will need to run C<zef install . --force-install> if you make changes
+to C<config.json> after installing RakudoBot, since Zef caches it.
+
 =head1 COMMANDS
 
 Commands may be used by addressing the bot.
