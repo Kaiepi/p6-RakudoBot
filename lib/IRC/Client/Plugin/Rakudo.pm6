@@ -93,7 +93,7 @@ method configure(--> Bool) {
 method build(--> Bool) {
     $.log-progress('Building Rakudo...');
 
-    run 'make', 'clean' if './perl6'.IO.e;
+    run 'make', 'clean' if 'perl6'.IO.e;
 
     my @lines;
     my $proc = Proc::Async.new: 'make';
