@@ -11,14 +11,17 @@ has Str      $.maintainer;
 has Str      $.source;
 has IO::Path $.path;
 has          @.config-flags;
+has Bool     $.debug;
+
 has IO::Path $.cwd;
 
 method new(
-    Str :$channel,
-    Str :$maintainer,
-    Str :$source,
-    Str :$rakudo-path,
-    :@config-flags
+    Str  :$channel,
+    Str  :$maintainer,
+    Str  :$source,
+    Str  :$rakudo-path,
+         :@config-flags,
+    Bool :$debug
 ) {
     my $replacer := $*DISTRO.is-win
         ?? / \%USERPROFILE\% | \%HOMEDRIVE\% \%HOMEPATH\% /
@@ -32,6 +35,7 @@ method new(
         :$source,
         :$path,
         :@config-flags,
+        :$debug,
         :cwd($*CWD);
 }
 
@@ -77,8 +81,14 @@ method configure(--> Bool) {
 
     my @lines;
     my $proc = Proc::Async.new: './Configure.pl', |@!config-flags;
-    $proc.stdout.tap({ @lines.push($_) });
-    $proc.stderr.tap({ @lines.push($_) });
+    $proc.stdout.tap({
+        print $_ if $!debug;
+        @lines.push($_);
+    });
+    $proc.stderr.tap({
+        $*ERR.print($_) if $!debug;
+        @lines.push($_);
+    });
     await $proc.start;
     return False;
 
@@ -97,8 +107,14 @@ method build(--> Bool) {
 
     my @lines;
     my $proc = Proc::Async.new: 'make';
-    $proc.stdout.tap({ @lines.push($_) });
-    $proc.stderr.tap({ @lines.push($_) });
+    $proc.stdout.tap({
+        print $_ if $!debug;
+        @lines.push($_);
+    });
+    $proc.stderr.tap({
+        $*ERR.print($_) if $!debug;
+        @lines.push($_);
+    });
     await $proc.start;
 
     $.log-progress('Build successful!');
@@ -118,10 +134,14 @@ method test(--> Bool) {
     my @lines;
     my $proc := Proc::Async.new: 'make', 'test';
     $proc.stdout.tap({
+        print $_ if $!debug;
         @lines.push($_);
         $.log-progress("| $_") if $_ ~~ / ^ t\S+\s+\( /;
     });
-    $proc.stderr.tap({ @lines.push($_) });
+    $proc.stderr.tap({
+        $*ERR.print($_) if $!debug;
+        @lines.push($_);
+    });
     await $proc.start;
 
     $.log-progress('Tests passed!');
@@ -141,10 +161,14 @@ method spectest(--> Bool) {
     my @lines;
     my $proc := Proc::Async.new: 'make', 'spectest';
     $proc.stdout.tap({
+        print $_ if $!debug;
         @lines.push($_);
         $.log-progress("| $_") if $_ ~~ / ^ t\S+\s+\( /;
     });
-    $proc.stderr.tap({ @lines.push($_) });
+    $proc.stderr.tap({
+        $*ERR.print($_) if $!debug;
+        @lines.push($_);
+    });
     await $proc.start;
 
     $.log-progress('Roast tests passed!');

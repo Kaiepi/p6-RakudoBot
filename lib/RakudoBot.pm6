@@ -9,7 +9,8 @@ my IRC::Client::Plugin::Rakudo $rakudo-plugin .= new:
     :maintainer(RB_MAINTAINER),
     :source(RB_SOURCE),
     :rakudo-path(RB_RAKUDO_PATH),
-    :config-flags(RB_CONFIG_FLAGS);
+    :config-flags(RB_CONFIG_FLAGS),
+    :debug(RB_DEBUG);
 
 .run with IRC::Client.new:
     :host(RB_HOST),
