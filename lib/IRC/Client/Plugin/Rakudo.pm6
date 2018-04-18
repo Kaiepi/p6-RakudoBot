@@ -36,7 +36,7 @@ method new(
 }
 
 method log-progress(Str $text) {
-    $.irc.send: :where($!maintainer), :text("[{$*VM.osname}] $text");
+    $.irc.send: :where($!channel), :text("[{$*VM.osname}] $text");
 }
 
 method log-output(Str $message, @lines) {
