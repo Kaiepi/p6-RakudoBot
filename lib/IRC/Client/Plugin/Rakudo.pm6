@@ -13,8 +13,8 @@ has Str      $.maintainer;
 has Str      $.source;
 has          @.config-flags;
 
-has IO::Path $.path;
-has IO::Path $.cwd;
+has IO::Path $.rakudo-path;
+has IO::Path $.repo-path;
 has Bool     $.debug;
 
 method new(
@@ -24,15 +24,15 @@ method new(
          :@config-flags,
     Bool :$debug
 ) {
-    my $path := 'src/rakudo'.IO;
-    my $cwd  := $*CWD;
+    my $rakudo-path := 'src/rakudo'.IO;
+    my $repo-path   := $*CWD;
     self.bless:
         :$channel,
         :$maintainer,
         :$source,
         :@config-flags,
-        :$path,
-        :$cwd,
+        :$repo-path,
+        :$rakudo-path,
         :$debug;
 }
 
@@ -50,7 +50,7 @@ method log-output(Str $message, Str $output) {
 
 multi method irc-addressed($ where /<|w>all<|w>/) {
     $.log-progress('Running complete Rakudo build and tests... (this will take a while)...');
-    chdir $!path;
+    chdir $!rakudo-path;
     my $p := Promise.start({ $.git-submodule-update });
     my $output = await $p;
     $output = await $p.then({ $.configure(|@!config-flags) });
@@ -61,7 +61,7 @@ multi method irc-addressed($ where /<|w>all<|w>/) {
     $output = await $p.then({ $.zef-install });
     $output = await $p.then({ $.perl5-install });
     $output = await $p.then({ $.make-stresstest });
-    chdir $!cwd;
+    chdir $!repo-path;
     $.log-progress('Successfully built Rakudo and passed all tests!');
     return 'done!';
 
@@ -70,13 +70,13 @@ multi method irc-addressed($ where /<|w>all<|w>/) {
 
 multi method irc-addressed($ where /<|w>build<|w>/) {
     $.log-progress('Building Rakudo...');
-    chdir $!path;
+    chdir $!rakudo-path;
     my $p := Promise.start({ $.git-submodule-update });
     my $output = await $p;
     $output = await $p.then({ $.configure(|@!config-flags) });
     $output = await $p.then({ $.make-clean });
     $output = await $p.then({ $.make });
-    chdir $!cwd;
+    chdir $!repo-path;
     $.log-progress('Successfully built Rakudo!');
     return 'done!';
 
@@ -85,10 +85,10 @@ multi method irc-addressed($ where /<|w>build<|w>/) {
 
 multi method irc-addressed($ where /<|w>test<|w>/) {
     $.log-progress('Running tests...');
-    chdir $!path;
+    chdir $!rakudo-path;
     my $p := Promise.start({ $.make-test });
     my $output = await $p;
-    chdir $!cwd;
+    chdir $!repo-path;
     $.log-progress('Successfully ran all tests!');
     return 'done!';
 
@@ -97,12 +97,12 @@ multi method irc-addressed($ where /<|w>test<|w>/) {
 
 multi method irc-addressed($ where /<|w>stresstest<|w>/) {
     $.log-progress("Running Roast's test suite (this will take a while)...");
-    chdir $!path;
+    chdir $!rakudo-path;
     my $p := Promise.start({ $.zef-install });
     my $output = await $p;
     $output = await $p.then({ $.perl5-install });
     $output = await $p.then({ $.make-stresstest });
-    chdir $!cwd;
+    chdir $!repo-path;
     $.log-progress('Successfully ran the full test suite!');
     return 'done!';
 
