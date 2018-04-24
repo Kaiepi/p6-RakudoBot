@@ -1,7 +1,9 @@
 use v6.c;
 use IRC::Client;
 use Pastebin::Shadowcat;
+use RakudoBot::Runner;
 unit class IRC::Client::Plugin::Rakudo does IRC::Client::Plugin;
+also is RakudoBot::Runner;
 
 has Lock                $!mux      .= new;
 has Pastebin::Shadowcat $!pastebin .= new;
@@ -9,11 +11,11 @@ has Pastebin::Shadowcat $!pastebin .= new;
 has Str      $.channel;
 has Str      $.maintainer;
 has Str      $.source;
-has IO::Path $.path;
 has          @.config-flags;
-has Bool     $.debug;
 
+has IO::Path $.path;
 has IO::Path $.cwd;
+has Bool     $.debug;
 
 method new(
     Str  :$channel,
@@ -46,6 +48,7 @@ method log-progress(Str $text) {
 method log-output(Str $message, @lines) {
     my $url := $!pastebin.paste(@lines.join(''));
     $.log-progress("$message See the output at $url");
+    return $url;
 
     CATCH {
         default {
@@ -54,200 +57,58 @@ method log-output(Str $message, @lines) {
     }
 }
 
-method diff(--> Bool) {
-    my $diff := qx/git diff -q/;
-    $.log-progress("The current branch has uncommitted changes. Please tell {$!maintainer} to commit or reset any changes made before running your command again.") if $diff;
-    so $diff;
-}
-
-method setup(--> Str) {
-    my $output := qx/git branch/;
-    $output ~~ / \*\s(\N+) /;
-
-    my $branch := ~$0;
-    unless $branch eq 'master' {
-        run 'git', 'checkout', 'master';
-        run 'git', 'pull', '--rebase', 'origin', 'master';
-    }
-    $branch;
-}
-
-method teardown(Str $branch) {
-    run('git', 'checkout', $branch) unless $branch eq 'master';
-}
-
-method configure(--> Bool) {
-    $.log-progress('Configuring Rakudo...');
-
-    my @lines;
-    my $proc = Proc::Async.new: './Configure.pl', |@!config-flags;
-    $proc.stdout.tap({
-        print $_ if $!debug;
-        @lines.push($_);
-    });
-    $proc.stderr.tap({
-        $*ERR.print($_) if $!debug;
-        @lines.push($_);
-    });
-    await $proc.start;
-    return False;
-
-    CATCH {
-        default {
-            $.log-output('Configuring failed.', @lines);
-            return True;
-        }
-    }
-}
-
-method build(--> Bool) {
-    $.log-progress('Building Rakudo...');
-
-    run 'make', 'clean' if 'perl6'.IO.e;
-
-    my @lines;
-    my $proc = Proc::Async.new: 'make';
-    $proc.stdout.tap({
-        print $_ if $!debug;
-        @lines.push($_);
-    });
-    $proc.stderr.tap({
-        $*ERR.print($_) if $!debug;
-        @lines.push($_);
-    });
-    await $proc.start;
-
-    $.log-progress('Build successful!');
-    return False;
-
-    CATCH {
-        default {
-            $.log-output('Build failed.', @lines);
-            return True;
-        }
-    }
-}
-
-method test(--> Bool) {
-    $.log-progress('Testing Rakudo...');
-
-    my @lines;
-    my $proc := Proc::Async.new: 'make', 'test';
-    $proc.stdout.tap({
-        print $_ if $!debug;
-        @lines.push($_);
-        $.log-progress("| $_") if $_ ~~ / ^ t\S+\s+\( /;
-    });
-    $proc.stderr.tap({
-        $*ERR.print($_) if $!debug;
-        @lines.push($_);
-    });
-    await $proc.start;
-
-    $.log-progress('Tests passed!');
-    return False;
-
-    CATCH {
-        default {
-            $.log-output('Tests failed.', @lines);
-            return True;
-        }
-    }
-}
-
-method spectest(--> Bool) {
-    $.log-progress('Running Roast test suite... (this will take a while)');
-
-    my @lines;
-    my $proc := Proc::Async.new: 'make', 'spectest';
-    $proc.stdout.tap({
-        print $_ if $!debug;
-        @lines.push($_);
-        $.log-progress("| $_") if $_ ~~ / ^ t\S+\s+\( /;
-    });
-    $proc.stderr.tap({
-        $*ERR.print($_) if $!debug;
-        @lines.push($_);
-    });
-    await $proc.start;
-
-    $.log-progress('Roast tests passed!');
-    return False;
-
-    CATCH {
-        default {
-            $.log-output('Roast tests failed.', @lines);
-            return True;
-        }
-    }
-}
-
 multi method irc-addressed($ where /<|w>all<|w>/) {
-    start {
-        $!mux.protect(sub {
-            chdir $!path;
-            return chdir $!cwd if $.diff;
+    $.log-progress('Running complete Rakudo build and tests... (this will take a while)...');
+    chdir $!path;
+    my $p := Promise.start({ $.configure(|@!config-flags) });
+    my $output = await $p;
+    $output = await $p.then({ $.make-clean });
+    $output = await $p.then({ $.make });
+    $output = await $p.then({ $.make-test });
+    $output = await $p.then({ $.make-stresstest });
+    chdir $!cwd;
+    $.log-progress('Successfully built Rakudo and passed all tests!');
+    return 'done!';
 
-            my $branch := $.setup;
-            my $error   = $.configure;
-            $error = $.build    unless $error;
-            $error = $.test     unless $error;
-            $error = $.spectest unless $error;
-            $.teardown($branch);
-            chdir $!cwd;
-        });
-
-        'done!';
-    }
+    CATCH { default { $.log-output('Complete build and tests failed.', $output); } }
 }
 
 multi method irc-addressed($ where /<|w>build<|w>/) {
-    start {
-        $!mux.protect(sub {
-            chdir $!path;
-            return chdir $!cwd if $.diff;
+    $.log-progress('Building Rakudo...');
+    chdir $!path;
+    my $p := Promise.start({ $.configure(|@!config-flags) });
+    my $output = await $p;
+    $output = await $p.then({ $.make-clean });
+    $output = await $p.then({ $.make });
+    chdir $!cwd;
+    $.log-progress('Successfully built Rakudo!');
+    return 'done!';
 
-            my $branch := $.setup;
-            my $error   = $.configure;
-            $.build unless $error;
-            $.teardown($branch);
-            chdir $!cwd;
-        });
-
-        'done!';
-    }
+    CATCH { default { $.log-output('Build failed.', $output); } }
 }
 
 multi method irc-addressed($ where /<|w>test<|w>/) {
-    start {
-        $!mux.protect(sub {
-            chdir $!path;
-            return chdir $!cwd if $.diff;
+    $.log-progress('Running tests...');
+    chdir $!path;
+    my $p := Promise.start({ $.make-test });
+    my $output = await $p;
+    chdir $!cwd;
+    $.log-progress('Successfully ran all tests!');
+    return 'done!';
 
-            my $branch := $.setup;
-            $.test;
-            $.teardown($branch);
-            chdir $!cwd;
-        });
-
-        'done!';
-    }
+    CATCH { default { $.log-output('Tests failed.', $output); } }
 }
 
-multi method irc-addressed($ where /<|w>spectest<|w>/) {
-    start {
-        $!mux.protect(sub {
-            chdir $!path;
-            return chdir $!cwd if $.diff;
+multi method irc-addressed($ where /<|w>stresstest<|w>/) {
+    $.log-progress('Running stress tests with Roast (this will take a while)...');
+    chdir $!path;
+    my $p := Promise.start({ $.make-stresstest });
+    my $output = await $p;
+    chdir $!cwd;
+    $.log-progress('Successfully ran the full test suite!');
+    return 'done!';
 
-            my $branch := $.setup;
-            $.spectest;
-            $.teardown($branch);
-            chdir $!cwd;
-        });
-
-        'done!';
-    }
+    CATCH { default { $.log-output('Failed to pass the test suite.', $output); } }
 }
 
 multi method irc-addressed($ where /<|w>(github|git|source)<|w>/) {
@@ -255,5 +116,5 @@ multi method irc-addressed($ where /<|w>(github|git|source)<|w>/) {
 }
 
 multi method irc-addressed($ where /<|w>help<|w>/) {
-    "address me with 'build', 'test', or 'spectest' to test building Rakudo, running tests, and running Roast\'s suite respectively on {$*VM.osname}. Address me with 'all' to attempt to run all three sequentially."
+    "address me with 'build', 'test', or 'stresstest' to test building Rakudo, running tests, and running Roast\'s suite respectively on {$*VM.osname}. Address me with 'all' to attempt to run all three sequentially."
 }

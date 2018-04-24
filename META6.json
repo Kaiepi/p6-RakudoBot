@@ -2,8 +2,8 @@
   "authors" : [ "Ben Davies" ],
   "build-depends" : [ ],
   "depends" : [
-	"IRC::Client",
-	"JSON::Fast",
+    "IRC::Client",
+    "JSON::Fast",
     "Pastebin::Shadowcat"
   ],
   "description" : "IRC bot for testing Rakudo builds",
@@ -13,7 +13,8 @@
   "provides" : {
     "RakudoBot" : "lib/RakudoBot.pm6",
     "RakudoBot::Config" : "lib/RakudoBot/Config.pm6",
-	"IRC::Client::Plugin::Rakudo" : "lib/IRC/Client/Plugin/Rakudo.pm6"
+    "RakudoBot::Runner" : "lib/RakudoBot/Runner.pm6",
+    "IRC::Client::Plugin::Rakudo" : "lib/IRC/Client/Plugin/Rakudo.pm6"
   },
   "resources" : [ ],
   "source-url" : "https://github.com/Kaiepi/p6-RakudoBot.git",
