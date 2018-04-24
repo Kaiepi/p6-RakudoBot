@@ -2,8 +2,8 @@ use v6.c;
 use IRC::Client;
 use Pastebin::Shadowcat;
 use RakudoBot::Runner;
-unit class IRC::Client::Plugin::Rakudo does IRC::Client::Plugin;
-also is RakudoBot::Runner;
+unit class IRC::Client::Plugin::Rakudo is RakudoBot::Runner;
+also does IRC::Client::Plugin;
 
 has Lock                $!mux      .= new;
 has Pastebin::Shadowcat $!pastebin .= new;
@@ -64,7 +64,10 @@ multi method irc-addressed($ where /<|w>all<|w>/) {
     my $output = await $p;
     $output = await $p.then({ $.make-clean });
     $output = await $p.then({ $.make });
+    $output = await $p.then({ $.make-install });
     $output = await $p.then({ $.make-test });
+    $output = await $p.then({ $.zef-install });
+    $output = await $p.then({ $.perl5-install });
     $output = await $p.then({ $.make-stresstest });
     chdir $!cwd;
     $.log-progress('Successfully built Rakudo and passed all tests!');
@@ -79,6 +82,7 @@ multi method irc-addressed($ where /<|w>build<|w>/) {
     my $p := Promise.start({ $.configure(|@!config-flags) });
     my $output = await $p;
     $output = await $p.then({ $.make-clean });
+    $output = await $p;
     $output = await $p.then({ $.make });
     chdir $!cwd;
     $.log-progress('Successfully built Rakudo!');
@@ -102,8 +106,10 @@ multi method irc-addressed($ where /<|w>test<|w>/) {
 multi method irc-addressed($ where /<|w>stresstest<|w>/) {
     $.log-progress('Running stress tests with Roast (this will take a while)...');
     chdir $!path;
-    my $p := Promise.start({ $.make-stresstest });
+    my $p := Promise.start({ $.zef-install });
     my $output = await $p;
+    $output = await $p.then({ $.perl5-install });
+    $output = await $p.then({ $.make-stresstest });
     chdir $!cwd;
     $.log-progress('Successfully ran the full test suite!');
     return 'done!';

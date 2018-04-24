@@ -37,3 +37,6 @@ method make-test(--> Str)       { $.make('test')                  }
 method make-stresstest(--> Str) { $.make('stresstest')            }
 method make-clean(--> Str)      { $.make('clean')                 }
 method make-realclean(--> Str)  { $.make('realclean')             }
+
+method zef-install(--> Str)  { $.run('zef', 'install', '--to=install/share/perl6/site', 'Zef') }
+method perl5-install(--> Str) { $.run('install/share/perl6/site/bin/zef', 'install', 'Inline::Perl5') }
