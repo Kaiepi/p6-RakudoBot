@@ -32,9 +32,9 @@ Runs `Configure.pl` and `make`, outputting any errors.
 
 Runs `make test`, outputting any errors.
 
-  * **spectest**
+  * **stresstest**
 
-Runs `make spectest`, outputting any errors.
+Runs `make stresstest`, outputting any errors.
 
   * **all**
 

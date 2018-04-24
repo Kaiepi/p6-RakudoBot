@@ -55,9 +55,9 @@ Runs C<Configure.pl> and C<make>, outputting any errors.
 
 Runs C<make test>, outputting any errors.
 
-=item B<spectest>
+=item B<stresstest>
 
-Runs C<make spectest>, outputting any errors.
+Runs C<make stresstest>, outputting any errors.
 
 =item B<all>
 
