@@ -33,7 +33,7 @@ RakudoBot is an IRC bot for testing builds of Rakudo. To install, run:
 
     $ git clone https://github.com/Kaiepi/p6-RakudoBot.git
     $ cd p6-RakudoBot
-    $ cp config.json.example config.json
+    $ cp resources/config.json.example resources/config.json
     $ zef install .
 
 Afterwards, edit C<config.json> to suit your needs. To start the bot, run:

@@ -16,7 +16,7 @@
     "RakudoBot::Runner" : "lib/RakudoBot/Runner.pm6",
     "IRC::Client::Plugin::Rakudo" : "lib/IRC/Client/Plugin/Rakudo.pm6"
   },
-  "resources" : [ ],
+  "resources" : [ "config.json" ],
   "source-url" : "https://github.com/Kaiepi/p6-RakudoBot.git",
   "tags" : [ "Net", "IRC" ],
   "test-depends" : [ ],
