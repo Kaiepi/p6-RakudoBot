@@ -21,47 +21,39 @@ method new(
     Str  :$channel,
     Str  :$maintainer,
     Str  :$source,
-    Str  :$rakudo-path,
          :@config-flags,
     Bool :$debug
 ) {
-    my $replacer := $*DISTRO.is-win
-        ?? / \%USERPROFILE\% | \%HOMEDRIVE\% \%HOMEPATH\% /
-        !! / \~ /;
-    my IO::Path $path .= new: $rakudo-path.subst($replacer, $*HOME, :g:i).IO.resolve;
-    fail "Configured Rakudo path '$path' is not a directory!" unless $path.d;
-
+    my $path := 'src/rakudo'.IO;
+    my $cwd  := $*CWD;
     self.bless:
         :$channel,
         :$maintainer,
         :$source,
-        :$path,
         :@config-flags,
-        :$debug,
-        :cwd($*CWD);
+        :$path,
+        :$cwd,
+        :$debug;
 }
 
 method log-progress(Str $text) {
     $.irc.send: :where($!channel), :text("[{$*VM.osname}] $text");
 }
 
-method log-output(Str $message, @lines) {
-    my $url := $!pastebin.paste(@lines.join(''));
+method log-output(Str $message, Str $output) {
+    my $url := $!pastebin.paste($output);
     $.log-progress("$message See the output at $url");
     return $url;
 
-    CATCH {
-        default {
-            $.log-progress("$message Failed to upload output to Pastebin.");
-        }
-    }
+    CATCH { default { $.log-progress("$message Failed to upload output to Pastebin.") } }
 }
 
 multi method irc-addressed($ where /<|w>all<|w>/) {
     $.log-progress('Running complete Rakudo build and tests... (this will take a while)...');
     chdir $!path;
-    my $p := Promise.start({ $.configure(|@!config-flags) });
+    my $p := Promise.start({ $.git-submodule-update });
     my $output = await $p;
+    $output = await $p.then({ $.configure(|@!config-flags) });
     $output = await $p.then({ $.make-clean });
     $output = await $p.then({ $.make });
     $output = await $p.then({ $.make-install });
@@ -79,10 +71,10 @@ multi method irc-addressed($ where /<|w>all<|w>/) {
 multi method irc-addressed($ where /<|w>build<|w>/) {
     $.log-progress('Building Rakudo...');
     chdir $!path;
-    my $p := Promise.start({ $.configure(|@!config-flags) });
+    my $p := Promise.start({ $.git-submodule-update });
     my $output = await $p;
+    $output = await $p.then({ $.configure(|@!config-flags) });
     $output = await $p.then({ $.make-clean });
-    $output = await $p;
     $output = await $p.then({ $.make });
     chdir $!cwd;
     $.log-progress('Successfully built Rakudo!');
@@ -104,7 +96,7 @@ multi method irc-addressed($ where /<|w>test<|w>/) {
 }
 
 multi method irc-addressed($ where /<|w>stresstest<|w>/) {
-    $.log-progress('Running stress tests with Roast (this will take a while)...');
+    $.log-progress("Running Roast's test suite (this will take a while)...");
     chdir $!path;
     my $p := Promise.start({ $.zef-install });
     my $output = await $p;

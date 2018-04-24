@@ -8,7 +8,6 @@ my IRC::Client::Plugin::Rakudo $rakudo-plugin .= new:
     :channel(RB_CHANNEL),
     :maintainer(RB_MAINTAINER),
     :source(RB_SOURCE),
-    :rakudo-path(RB_RAKUDO_PATH),
     :config-flags(RB_CONFIG_FLAGS),
     :debug(RB_DEBUG);
 
@@ -31,7 +30,7 @@ RakudoBot - IRC bot for testing Rakudo builds
 
 RakudoBot is an IRC bot for testing builds of Rakudo. To install, run:
 
-    $ git clone https://github.com/Kaiepi/p6-RakudoBot.git
+    $ git clone --recurse-submodules https://github.com/Kaiepi/p6-RakudoBot.git
     $ cd p6-RakudoBot
     $ cp resources/config.json.example resources/config.json
     $ zef install .
@@ -104,11 +103,6 @@ them.
 =item B<source>
 
 Link to the source repo of the bot.
-
-=item B<rakudo_path>
-
-The path to the directory containing Rakudo's source code. If it doesn't exist,
-clone <https://github.com/perl6/rakudo.git> and change this to its path.
 
 =item B<config_flags>
 

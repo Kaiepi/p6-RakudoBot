@@ -1,0 +1,3 @@
+[submodule "src/rakudo"]
+	path = src/rakudo
+	url = git@github.com:rakudo/rakudo.git

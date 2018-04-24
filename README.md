@@ -8,7 +8,7 @@ DESCRIPTION
 
 RakudoBot is an IRC bot for testing builds of Rakudo. To install, run:
 
-    $ git clone https://github.com/Kaiepi/p6-RakudoBot.git
+    $ git clone --recurse-submodules https://github.com/Kaiepi/p6-RakudoBot.git
     $ cd p6-RakudoBot
     $ cp resources/config.json.example resources/config.json
     $ zef install .
@@ -82,10 +82,6 @@ The nickname of the maintainer of the bot (you) in case users need to contact th
   * **source**
 
 Link to the source repo of the bot.
-
-  * **rakudo_path**
-
-The path to the directory containing Rakudo's source code. If it doesn't exist, clone <https://github.com/perl6/rakudo.git> and change this to its path.
 
   * **config_flags**
 
