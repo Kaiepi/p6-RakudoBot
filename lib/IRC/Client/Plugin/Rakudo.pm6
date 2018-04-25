@@ -15,7 +15,6 @@ has          @.config-flags;
 
 has IO::Path $.rakudo-path;
 has IO::Path $.repo-path;
-has Bool     $.debug;
 
 method new(
     Str  :$channel,
@@ -49,64 +48,114 @@ method log-output(Str $message, Str $output) {
 }
 
 multi method irc-addressed($ where /<|w>all<|w>/) {
-    $.log-progress('Running complete Rakudo build and tests... (this will take a while)...');
-    chdir $!rakudo-path;
-    my $p := Promise.start({ $.git-submodule-update });
-    my $output = await $p;
-    $output = await $p.then({ $.configure(|@!config-flags) });
-    $output = await $p.then({ $.make-clean });
-    $output = await $p.then({ $.make });
-    $output = await $p.then({ $.make-install });
-    $output = await $p.then({ $.make-test });
-    $output = await $p.then({ $.zef-install });
-    $output = await $p.then({ $.perl5-install });
-    $output = await $p.then({ $.make-stresstest });
-    chdir $!repo-path;
-    $.log-progress('Successfully built Rakudo and passed all tests!');
-    return 'done!';
+    start {
+        $!mux.protect(sub {
+            $.log-progress('Running complete Rakudo build and tests (this will take a while)...');
+            chdir $!rakudo-path;
+            await $.git-submodule-update;
+            await $.configure(|@!config-flags);
+            await $.make-clean;
+            await $.make;
+            await $.make-install;
+            await $.make-test;
+            await $.zef-install;
+            await $.perl5-install;
+            await $.make-stresstest;
+            chdir $!repo-path;
+            $.log-progress('Successfully built Rakudo and passed all tests!');
 
-    CATCH { default { $.log-output('Complete build and tests failed.', $output); } }
+            return 'done!';
+
+            CATCH {
+                when X::RakudoBot::ProcError { $.log-output('Failed to build Rakudo and run all tests...', .logs) }
+                default { .rethrow }
+            }
+        });
+    }
 }
 
 multi method irc-addressed($ where /<|w>build<|w>/) {
-    $.log-progress('Building Rakudo...');
-    chdir $!rakudo-path;
-    my $p := Promise.start({ $.git-submodule-update });
-    my $output = await $p;
-    $output = await $p.then({ $.configure(|@!config-flags) });
-    $output = await $p.then({ $.make-clean });
-    $output = await $p.then({ $.make });
-    chdir $!repo-path;
-    $.log-progress('Successfully built Rakudo!');
-    return 'done!';
+    start {
+        $!mux.protect(sub {
+            $.log-progress('Building Rakudo...');
+            chdir $!rakudo-path;
+            await $.git-submodule-update;
+            await $.configure(|@!config-flags);
+            await $.make-clean;
+            await $.make;
+            await $.make-install;
+            chdir $!repo-path;
+            $.log-progress('Successfully built Rakudo!');
 
-    CATCH { default { $.log-output('Build failed.', $output); } }
+            return 'done!';
+
+            CATCH {
+                when X::RakudoBot::ProcError { $.log-output('Failed build....', .logs) }
+                default { .rethrow }
+            }
+        });
+    }
 }
 
 multi method irc-addressed($ where /<|w>test<|w>/) {
-    $.log-progress('Running tests...');
-    chdir $!rakudo-path;
-    my $p := Promise.start({ $.make-test });
-    my $output = await $p;
-    chdir $!repo-path;
-    $.log-progress('Successfully ran all tests!');
-    return 'done!';
+    start {
+        $!mux.protect(sub {
+            $.log-progress('Running tests...');
+            chdir $!rakudo-path;
+            await $.make-test;
+            chdir $!repo-path;
+            $.log-progress('Successfully ran all tests!');
 
-    CATCH { default { $.log-output('Tests failed.', $output); } }
+            return 'done!';
+
+            CATCH {
+                when X::RakudoBot::ProcError { $.log-output('Failed tests...', .logs) }
+                default { .rethrow }
+            }
+        });
+    }
+}
+
+multi method irc-addressed($ where /<|w>spectest<|w>/) {
+    start {
+        $!mux.protect(sub {
+            $.log-progress("Running Roast's spec test suite...");
+            chdir $!rakudo-path;
+            await $.zef-install;
+            await $.perl5-install;
+            await $.make-spectest;
+            chdir $!repo-path;
+            $.log-progress('Successfully passed all spec tests!');
+
+            return 'done!';
+
+            CATCH {
+                when X::RakudoBot::ProcError { $.log-output('Failed spec tests...', .logs) }
+                default { .rethrow }
+            }
+        });
+    }
 }
 
 multi method irc-addressed($ where /<|w>stresstest<|w>/) {
-    $.log-progress("Running Roast's test suite (this will take a while)...");
-    chdir $!rakudo-path;
-    my $p := Promise.start({ $.zef-install });
-    my $output = await $p;
-    $output = await $p.then({ $.perl5-install });
-    $output = await $p.then({ $.make-stresstest });
-    chdir $!repo-path;
-    $.log-progress('Successfully ran the full test suite!');
-    return 'done!';
+    start {
+        $!mux.protect(sub {
+            $.log-progress("Running Roast's stress test suite (this will take a while)...");
+            chdir $!rakudo-path;
+            await $.zef-install;
+            await $.perl5-install;
+            await $.make-stresstest;
+            chdir $!repo-path;
+            $.log-progress("Successfully passed all of Roast's tests!");
 
-    CATCH { default { $.log-output('Failed to pass the test suite.', $output); } }
+            return 'done!';
+
+            CATCH {
+                when X::RakudoBot::ProcError { $.log-output('Failed Roast stress test suite...', .logs) }
+                default { .rethrow }
+            }
+        });
+    }
 }
 
 multi method irc-addressed($ where /<|w>(github|git|source)<|w>/) {
@@ -114,5 +163,5 @@ multi method irc-addressed($ where /<|w>(github|git|source)<|w>/) {
 }
 
 multi method irc-addressed($ where /<|w>help<|w>/) {
-    "address me with 'build', 'test', or 'stresstest' to test building Rakudo, running tests, and running Roast\'s suite respectively on {$*VM.osname}. Address me with 'all' to attempt to run all three sequentially."
+    "address me with 'build', 'test', 'spectest', or 'stresstest' to test building Rakudo, running tests, and running Roast\'s test suite respectively on {$*VM.osname}. Address me with 'all' to attempt to run a full build with all tests."
 }
