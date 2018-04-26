@@ -20,6 +20,7 @@ method new(
     Str  :$channel,
     Str  :$maintainer,
     Str  :$source,
+    Int  :$test-jobs,
          :@config-flags,
     Bool :$debug
 ) {
@@ -29,6 +30,7 @@ method new(
         :$channel,
         :$maintainer,
         :$source,
+        :$test-jobs,
         :@config-flags,
         :$repo-path,
         :$rakudo-path,

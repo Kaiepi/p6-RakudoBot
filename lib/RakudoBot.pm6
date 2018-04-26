@@ -8,6 +8,7 @@ my IRC::Client::Plugin::Rakudo $rakudo-plugin .= new:
     :channel(RB_CHANNEL),
     :maintainer(RB_MAINTAINER),
     :source(RB_SOURCE),
+    :test-flags(RB_TEST_JOBS),
     :config-flags(RB_CONFIG_FLAGS),
     :debug(RB_DEBUG);
 
@@ -54,13 +55,17 @@ Runs C<Configure.pl> and C<make>, outputting any errors.
 
 Runs C<make test>, outputting any errors.
 
+=item B<spectest>
+
+RunsC<make spectest>, outputting any errors.
+
 =item B<stresstest>
 
 Runs C<make stresstest>, outputting any errors.
 
 =item B<all>
 
-Runs C<Configure.pl>, C<make>, C<make test>, and C<make spectest>, outputting
+Runs C<Configure.pl>, C<make>, C<make test>, and C<make stresstest>, outputting
 any errors.
 
 =item B<github>
@@ -103,6 +108,10 @@ them.
 =item B<source>
 
 Link to the source repo of the bot.
+
+=item B<test_jobs>
+
+The number of threads to use when running tests.
 
 =item B<config_flags>
 

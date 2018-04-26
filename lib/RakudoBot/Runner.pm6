@@ -10,6 +10,7 @@ class X::RakudoBot::ProcError is Exception is export {
     }
 }
 
+has Int  $.test-jobs;
 has Bool $.debug;
 
 method run(|args --> Promise) {
@@ -45,9 +46,21 @@ method make-install(--> Promise)    { $.run('make', 'install')        }
 method make-clean(--> Promise)      { $.run('make', 'clean')          }
 method make-realclean(--> Promise)  { $.run('make', 'realclean')      }
 
-method make-test(--> Promise)       { $.run('make', 'test')       }
-method make-spectest(--> Promise)   { $.run('make', 'spectest')   }
-method make-stresstest(--> Promise) { $.run('make', 'stresstest') }
+method make-test(--> Promise) {
+    ENTER { %*ENV<TEST_JOBS> = $!test-jobs }
+    LEAVE { %*ENV<TEST_JOBS>:delete        }
+    $.run('make', 'test')
+}
+method make-spectest(--> Promise) {
+    ENTER { %*ENV<TEST_JOBS> = $!test-jobs }
+    LEAVE { %*ENV<TEST_JOBS>:delete        }
+    $.run('make', 'spectest')
+}
+method make-stresstest(--> Promise) {
+    ENTER { %*ENV<TEST_JOBS> = $!test-jobs }
+    LEAVE { %*ENV<TEST_JOBS>:delete        }
+    $.run('make', 'stresstest')
+}
 
 method git-submodule-update(--> Promise) {
     $.run('git', 'submodule', 'update', '--remote', '--merge');
