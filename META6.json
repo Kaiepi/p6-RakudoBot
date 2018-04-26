@@ -5,7 +5,7 @@
     "IRC::Client",
     "JSON::Fast",
     "Pastebin::Shadowcat",
-    "Inline::Perl5"
+	"Zef"
   ],
   "description" : "IRC bot for testing Rakudo builds",
   "license" : "Artistic-2.0",
