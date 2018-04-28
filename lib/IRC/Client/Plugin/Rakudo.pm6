@@ -55,6 +55,8 @@ multi method irc-addressed($ where /<|w>all<|w>/) {
             $.log-progress('Running complete Rakudo build and tests (this will take a while)...');
             chdir $!rakudo-path;
             await $.git-submodule-update;
+            await $.git-fetch;
+            await $.git-pull;
             await $.configure(|@!config-flags);
             await $.make-clean;
             await $.make;
@@ -82,6 +84,8 @@ multi method irc-addressed($ where /<|w>build<|w>/) {
             $.log-progress('Building Rakudo...');
             chdir $!rakudo-path;
             await $.git-submodule-update;
+            await $.git-fetch;
+            await $.git-pull;
             await $.configure(|@!config-flags);
             await $.make-clean;
             await $.make;

@@ -96,7 +96,7 @@ Enable/disable debug logging.
 AUTHOR
 ======
 
-Ben Davies <kaiepi@outlook.com>
+Ben Davies (Kaiepi)
 
 COPYRIGHT AND LICENSE
 =====================

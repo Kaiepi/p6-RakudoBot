@@ -40,6 +40,9 @@ method run(|args --> Promise) {
     }
 }
 
+method git-fetch(--> Promise) { $.run('git', 'fetch')                    }
+method git-pull(--> Promise)  { $.run('git', 'pull', 'origin', 'master') }
+
 method configure(*@args--> Promise) { $.run("./Configure.pl", |@args) }
 method make(--> Promise)            { $.run('make')                   }
 method make-install(--> Promise)    { $.run('make', 'install')        }

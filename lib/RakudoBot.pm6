@@ -126,7 +126,7 @@ Enable/disable debug logging.
 
 =head1 AUTHOR
 
-Ben Davies <kaiepi@outlook.com>
+Ben Davies (Kaiepi)
 
 =head1 COPYRIGHT AND LICENSE
 
